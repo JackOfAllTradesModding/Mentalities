@@ -1,0 +1,116 @@
+Scriptname Mnt_Tracker Extends Quest
+{Actual tracking of basic events}
+
+SexLabFramework Property SexLab Auto
+Actor Property PlayerRef Auto
+slaFrameworkScr Property SexLabAroused Auto
+Mnt_MCM Property Config Auto
+
+;Properties to store important keywords, strings, animation tags, etc
+;Properties pointing to module scripts, empty version ships with base, filled versions with modules.
+
+;======================================================
+;Empty State
+;======================================================
+Event OnInit()
+;Display simple config in dialogue box (options to import stats, enable or disable certain features)
+;Does next to nothing else. Most options are chosen through MCM, including starting tracking.
+EndEvent
+
+Int Function StartTrackers() ;Empty
+	Return -1; Tell Calling script that the mod hasn't been started in the MCM
+EndFunction
+
+Event sslStageStart(string eventName, string argString, float argNum, form sender) ;Empty
+;Stage Start
+EndEvent
+
+Event sslOrgasmEnd(string eventName, string argString, float argNum, form sender) ;Empty
+;Orgasm End
+EndEvent
+
+Event slaExposureUpdate(Form act, float val) ;Empty
+;Exposure Change
+EndEvent
+
+
+;======================================================
+;Running State
+;======================================================
+State Running
+
+;Function: start trackers, triggered by gameload event.
+	;Others depending on which soft dependencies are involved.
+	;Figure out how FunnyBizness tracks cum, add that as preliminary to bukkake
+	;Set up optional trackers through dummy scripts, script there but empty unless the module installed.
+
+Int Function StartTrackers()
+
+	UnregisterForAllModEvents();Unsure of what happens if you double register, but this can't hurt
+	RegisterForModEvent("HookStageStart", "sslStageStart")
+	RegisterForModEvent("HookOrgasmEnd", "sslOrgasmEnd")
+	RegisterForModEvent("slaUpdateExposure", "slaExposureUpdate")
+	
+	Return 0; Tell calling script everything started as intended.
+EndFunction
+
+Event sslStageStart(string eventName, string argString, float argNum, form sender)
+;Stage Start
+;Look at SSL API for what these args can be used for. At least need tags.
+EndEvent
+
+Event sslOrgasmEnd(string eventName, string argString, float argNum, form sender)
+	;Orgasm End
+	
+	;FIXME: Nest entire event body in conditional (If Player is in animation)
+	sslThreadController current = SexLab.HookController(argString);
+	If (current.GetPlayer() == PlayerRef)
+	Bool Consensual = True;
+	Bool PlayerBottom = True;
+	Bool Group = False;
+	
+	If (current.ActorCount > 2)
+		Group = True
+	ElseIf (current.ActorCount == 2)
+		Group = False
+	Else
+		Return
+	EndIf
+	
+	If(Config.Tracelog)
+		Debug.Trace()
+	EndIf
+    
+    If (current.IsVictim(PlayerRef))
+		;Player gettin' raped
+		Consensual = False;
+    Else
+    	;Consensual
+		Consensual = True;
+    EndIf
+
+	;Check positions, unsure if "position" returned by SSL actually has any baring on where the character is in the animation. Will look around.
+	Else
+	
+	EndIf
+	
+	
+	;Read tags
+	;Calc Pain and Pleasure for player
+	;Log to storageutil
+EndEvent
+
+Event slaExposureUpdate(Form act, float val)
+;Exposure Change
+;Act: Actor being updated as form
+;val: new exposure value
+EndEvent
+
+EndState
+
+
+;Consequences portion:
+	;Add interaction thing, based on forcegreet? or maybe a dialogue option that shows up based on player stats
+	;player dialogue choices set based on stats.
+	
+;Need to plan this out to not disappoint Yuni.
